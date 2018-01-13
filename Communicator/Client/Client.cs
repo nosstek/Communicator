@@ -7,21 +7,19 @@ using Common;
 
 public class Client
 {
-    static String name = "Client";
+    static string name = "Client";
 
     static int p;
     static int g;
 
-    static int a;
+    static int a = 7;
     static int b;
 
-    static String SendMessage(ref TcpClient tcp_client, String message)
+    static string SendMessage(ref TcpClient tcp_client, string message)
     {
-        String write_message = JsonConvert.SerializeObject(message);
         Stream network_stream = tcp_client.GetStream();
 
-        ASCIIEncoding encoder = new ASCIIEncoding();
-        byte[] write_buffer = encoder.GetBytes(write_message);
+        byte[] write_buffer = Encoding.UTF8.GetBytes(message);
         Console.WriteLine("Transmitting.....");
 
         network_stream.Write(write_buffer, 0, write_buffer.Length);
@@ -29,28 +27,27 @@ public class Client
         byte[] read_buffer = new byte[100];
         int data_received = network_stream.Read(read_buffer, 0, 100);
 
-        return encoder.GetString(read_buffer, 0, data_received);
+        return Encoding.UTF8.GetString(read_buffer, 0, data_received);
     }
 
     static bool InitializeSecureConnection(ref TcpClient tcp_client)
     {
-        return true;
-
         Request req = new Request("keys");
-        String request_keys = JsonConvert.SerializeObject(req);
-        String request_keys_response = SendMessage(ref tcp_client, request_keys);
+        string request_keys = JsonConvert.SerializeObject(req);
+        string request_keys_response = SendMessage(ref tcp_client, request_keys);
 
         dynamic response_p_i_g = JsonConvert.DeserializeObject(request_keys_response);
         p = response_p_i_g.p;
         g = response_p_i_g.g;
 
-        String send_a_response = SendMessage(ref tcp_client, "{ \"a\": 123 }");
+        string a_string = "{ \"a\": " + a + " }";
+        string send_a_response = SendMessage(ref tcp_client, a_string);
 
         dynamic response_b = JsonConvert.DeserializeObject(send_a_response);
         b = response_b.b;
 
-        Encryption encryption = new Encryption("none");
-        String enc = JsonConvert.SerializeObject(encryption);
+        Encryption encryption = new Encryption(CryptMethods.none);
+        string enc = JsonConvert.SerializeObject(encryption);
         Console.WriteLine(SendMessage(ref tcp_client, enc));
 
         return true;
@@ -84,28 +81,29 @@ public class Client
             {
                 Console.Write("Enter the string to be transmitted : ");
 
-                String from = Client.name;
+                string from = Client.name;
 
-                String msg = Console.ReadLine();
-                String encrypted_msg = crypt.Encrypt(msg);
-                String encoded_msg = coder.Encode(encrypted_msg);
+                string msg = Console.ReadLine();
+                string encrypted_msg = crypt.Encrypt(msg);
+                string encoded_msg = coder.Encode(encrypted_msg);
 
                 Message message = new Message(from, encoded_msg);
 
-                String write_message = JsonConvert.SerializeObject(message);
-                Stream network_stream = tcp_client.GetStream();
+                string write_message = JsonConvert.SerializeObject(message);
+                //Stream network_stream = tcp_client.GetStream();
 
-                byte[] write_buffer = Encoding.UTF8.GetBytes(write_message);
-                Console.WriteLine("Transmitting.....");
+                //byte[] write_buffer = Encoding.UTF8.GetBytes(write_message);
+                //Console.WriteLine("Transmitting.....");
 
-                network_stream.Write(write_buffer, 0, write_buffer.Length);
+                //network_stream.Write(write_buffer, 0, write_buffer.Length);
 
-                byte[] read_buffer = new byte[100];
-                int data_received = network_stream.Read(read_buffer, 0, 100);
+                //byte[] read_buffer = new byte[100];
+                //int data_received = network_stream.Read(read_buffer, 0, 100);
 
-                String read_message = Encoding.UTF8.GetString(read_buffer, 0, data_received);
-                Console.WriteLine(read_message);
-                //Console.WriteLine(SendMessage(tcp_client, JsonConvert.SerializeObject(message)));
+                //string read_message = Encoding.UTF8.GetString(read_buffer, 0, data_received);
+                //Console.WriteLine(read_message);
+
+                Console.WriteLine(SendMessage(ref tcp_client, write_message));
 
                 quit = msg == "quit";
             } while (!quit);

@@ -24,11 +24,11 @@ namespace Common
 
     public class Encryption
     {
-        public Encryption(String enc)
+        public Encryption(CryptMethods enc)
         {
             encryption = enc;
         }
-        public String encryption;
+        public CryptMethods encryption;
     }
 
     public interface ICoder
@@ -62,10 +62,25 @@ namespace Common
         }
     }
 
+    public enum CryptMethods { none, xor, cesar };
+
     public interface ICrypt
     {
         string Encrypt(string plainText);
         string Decrypt(string encodeData);
+    }
+
+    public class NoCrypt : ICrypt
+    {
+        public string Decrypt(string encodeData)
+        {
+            return encodeData;
+        }
+
+        public string Encrypt(string plainText)
+        {
+            return plainText;
+        }
     }
 
     public class XORCrypt : ICrypt

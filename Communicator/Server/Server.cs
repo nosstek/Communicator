@@ -4,52 +4,50 @@ using System.Net;
 using System.Net.Sockets;
 using Newtonsoft.Json;
 using Common;
-using System.Text.RegularExpressions;
 
 public class Server
 {
-    static String name = "Server";
+    static string name = "Server";
 
-    static int p;
-    static int g;
+    static int p = 123;
+    static int g = 456;
 
     static int a;
-    static int b;
+    static int b = 8;
 
+    static CryptMethods crypt_method;
 
-    static String ReceiveMessage(ref Socket socket)
+    static string ReceiveMessage(ref Socket socket)
     {
         byte[] buffer = new byte[100];
         int data_received = socket.Receive(buffer);
-        ASCIIEncoding encoder = new ASCIIEncoding();
-        String json_message = encoder.GetString(buffer, 0, data_received);
+        string json_message = Encoding.UTF8.GetString(buffer, 0, data_received);
         Console.WriteLine("Recieved..." + json_message);
-        return Regex.Unescape(json_message);
+        return json_message;
     }
 
-    static void SendMessage(ref Socket socket, String message)
+    static void SendMessage(ref Socket socket, string message)
     {
-        ASCIIEncoding encoder = new ASCIIEncoding();
-        socket.Send(encoder.GetBytes(message));
+        socket.Send(Encoding.UTF8.GetBytes(message));
     }
 
     static bool InitializeSecureConnection(ref Socket socket)
     {
-        return true;
-
         var received_request_keys = ReceiveMessage(ref socket);
         Request request = JsonConvert.DeserializeObject<Request>(received_request_keys);
         Console.WriteLine("Keys requested");
-        SendMessage(ref socket, "{ \"p\": 123, \"g\": 123 }");
+        SendMessage(ref socket, "{ \"p\": " + p + ", \"g\": " + g + " }");
         Console.WriteLine("Keys sent");
         var received_a = ReceiveMessage(ref socket);
 
         dynamic rec_a = JsonConvert.DeserializeObject(received_a);
-        //a = rec_a.a;
+        a = rec_a.a;
 
-        SendMessage(ref socket, "{ \"b\": 123 }");
+        SendMessage(ref socket, "{ \"b\": " + b + " }");
 
         var received_encryption = ReceiveMessage(ref socket);
+        dynamic encryption_method = JsonConvert.DeserializeObject(received_encryption);
+        crypt_method = encryption_method.encryption;
 
         SendMessage(ref socket, "Connection Succesfull");
 
@@ -82,7 +80,22 @@ public class Server
 
             InitializeSecureConnection(ref socket);
 
-            ICrypt crypt = new XORCrypt();
+            ICrypt crypt;
+            
+            switch (crypt_method)
+            {
+                case CryptMethods.xor:
+                    crypt = new XORCrypt();
+                    break;
+                case CryptMethods.cesar:
+                    crypt = new CesarCrypt();
+                    break;
+                case CryptMethods.none:
+                default:
+                    crypt = new NoCrypt();
+                    break;
+            };
+
             ICoder coder = new Base64Coder();
 
             bool quit = false;
@@ -92,14 +105,14 @@ public class Server
                 int data_received = socket.Receive(buffer);
                 Console.Write("Recieved... ");
 
-                String json_message = Encoding.UTF8.GetString(buffer, 0, data_received);
+                string json_message = Encoding.UTF8.GetString(buffer, 0, data_received);
                 Console.WriteLine(json_message);
 
                 Message message = JsonConvert.DeserializeObject<Message>(json_message);
                 string name = message.Name;
                 string text_encoded = message.Text;
-                String text_encrypted = coder.Decode(text_encoded);
-                String text = crypt.Decrypt(text_encrypted);
+                string text_encrypted = coder.Decode(text_encoded);
+                string text = crypt.Decrypt(text_encrypted);
                 Console.WriteLine(name + ": " + text);
 
                 socket.Send(Encoding.UTF8.GetBytes("The string was recieved by the server."));
