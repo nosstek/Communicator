@@ -4,18 +4,47 @@ using System.Net;
 using System.Net.Sockets;
 using Newtonsoft.Json;
 using Common;
+using System.Collections.Generic;
 
 public class Server
 {
     static string name = "Server";
 
-    static int p = 123;
-    static int g = 456;
+    static double p = 123;
+    static double g = 456;
 
-    static int a;
-    static int b = 8;
+    static double a;
+    static double b = 8;
+
+    static double s;
 
     static CryptMethods crypt_method;
+
+    public static List<int> GeneratePrimesNaive(int n)
+    {
+        List<int> primes = new List<int>();
+        primes.Add(2);
+        int nextPrime = 3;
+        while (primes.Count < n)
+        {
+            int sqrt = (int)Math.Sqrt(nextPrime);
+            bool isPrime = true;
+            for (int i = 0; (int)primes[i] <= sqrt; i++)
+            {
+                if (nextPrime % primes[i] == 0)
+                {
+                    isPrime = false;
+                    break;
+                }
+            }
+            if (isPrime)
+            {
+                primes.Add(nextPrime);
+            }
+            nextPrime += 2;
+        }
+        return primes;
+    }
 
     static string ReceiveMessage(ref Socket socket)
     {
@@ -33,6 +62,12 @@ public class Server
 
     static bool InitializeSecureConnection(ref Socket socket)
     {
+        var primes = GeneratePrimesNaive(100);
+        Random rnd = new Random();
+        int r = rnd.Next(primes.Count);
+        p = 23;//primes[r];
+        g = 5;
+
         var received_request_keys = ReceiveMessage(ref socket);
         Request request = JsonConvert.DeserializeObject<Request>(received_request_keys);
         Console.WriteLine("Keys requested");
@@ -43,7 +78,11 @@ public class Server
         dynamic rec_a = JsonConvert.DeserializeObject(received_a);
         a = rec_a.a;
 
-        SendMessage(ref socket, "{ \"b\": " + b + " }");
+        double B = Math.Pow(g, b) % p;
+
+        SendMessage(ref socket, "{ \"b\": " + B + " }");
+
+        s = Math.Pow(a, b) % p;
 
         var received_encryption = ReceiveMessage(ref socket);
         dynamic encryption_method = JsonConvert.DeserializeObject(received_encryption);
@@ -85,10 +124,10 @@ public class Server
             switch (crypt_method)
             {
                 case CryptMethods.xor:
-                    crypt = new XORCrypt();
+                    crypt = new XORCrypt(Convert.ToByte(s));
                     break;
                 case CryptMethods.cesar:
-                    crypt = new CesarCrypt();
+                    crypt = new CesarCrypt(Convert.ToByte(s));
                     break;
                 case CryptMethods.none:
                 default:

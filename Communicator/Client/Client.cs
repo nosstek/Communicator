@@ -9,11 +9,15 @@ public class Client
 {
     static string name = "Client";
 
-    static int p;
-    static int g;
+    static double p;
+    static double g;
 
-    static int a = 7;
-    static int b;
+    static double a = 4;
+    static double b;
+
+    static double s;
+
+    static CryptMethods crypt_method = CryptMethods.cesar;
 
     static string SendMessage(ref TcpClient tcp_client, string message)
     {
@@ -40,13 +44,17 @@ public class Client
         p = response_p_i_g.p;
         g = response_p_i_g.g;
 
-        string a_string = "{ \"a\": " + a + " }";
+        double A = Math.Pow(g, a) % p;
+
+        string a_string = "{ \"a\": " + A + " }";
         string send_a_response = SendMessage(ref tcp_client, a_string);
 
         dynamic response_b = JsonConvert.DeserializeObject(send_a_response);
         b = response_b.b;
 
-        Encryption encryption = new Encryption(CryptMethods.none);
+        s = Math.Pow(b, a) % p;
+
+        Encryption encryption = new Encryption(crypt_method);
         string enc = JsonConvert.SerializeObject(encryption);
         Console.WriteLine(SendMessage(ref tcp_client, enc));
 
@@ -73,7 +81,21 @@ public class Client
 
             InitializeSecureConnection(ref tcp_client);
 
-            ICrypt crypt = new XORCrypt();
+            ICrypt crypt;
+
+            switch (crypt_method)
+            {
+                case CryptMethods.xor:
+                    crypt = new XORCrypt(Convert.ToByte(s));
+                    break;
+                case CryptMethods.cesar:
+                    crypt = new CesarCrypt(Convert.ToByte(s));
+                    break;
+                case CryptMethods.none:
+                default:
+                    crypt = new NoCrypt();
+                    break;
+            };
             ICoder coder = new Base64Coder();
 
             bool quit = false;
@@ -90,18 +112,6 @@ public class Client
                 Message message = new Message(from, encoded_msg);
 
                 string write_message = JsonConvert.SerializeObject(message);
-                //Stream network_stream = tcp_client.GetStream();
-
-                //byte[] write_buffer = Encoding.UTF8.GetBytes(write_message);
-                //Console.WriteLine("Transmitting.....");
-
-                //network_stream.Write(write_buffer, 0, write_buffer.Length);
-
-                //byte[] read_buffer = new byte[100];
-                //int data_received = network_stream.Read(read_buffer, 0, 100);
-
-                //string read_message = Encoding.UTF8.GetString(read_buffer, 0, data_received);
-                //Console.WriteLine(read_message);
 
                 Console.WriteLine(SendMessage(ref tcp_client, write_message));
 

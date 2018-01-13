@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Common
 {
@@ -85,27 +86,67 @@ namespace Common
 
     public class XORCrypt : ICrypt
     {
+        byte key;
+
+        public XORCrypt(byte k)
+        {
+            key = k;
+        }
+
         public string Decrypt(string encodeData)
         {
-            return encodeData;
+            return Encrypt(encodeData);
         }
 
         public string Encrypt(string plainText)
         {
-            return plainText;
+            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
+
+            List<byte> EncryptedBytes = new List<byte>();
+            for (int i = 0; i < plainTextBytes.Length; ++i)
+            {
+                byte b = (byte)(plainTextBytes[i] ^ key);
+                EncryptedBytes.Add(b);
+            }
+
+            return System.Text.Encoding.UTF8.GetString(EncryptedBytes.ToArray());
         }
     }
 
     public class CesarCrypt : ICrypt
     {
+        byte key;
+
+        public CesarCrypt(byte k)
+        {
+            key = k;
+        }
         public string Decrypt(string encodeData)
         {
-            return encodeData;
+            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(encodeData);
+
+            List<byte> EncryptedBytes = new List<byte>();
+            for (int i = 0; i < plainTextBytes.Length; ++i)
+            {
+                byte b = (byte)(plainTextBytes[i] - key);
+                EncryptedBytes.Add(b);
+            }
+
+            return System.Text.Encoding.UTF8.GetString(EncryptedBytes.ToArray());
         }
 
         public string Encrypt(string plainText)
         {
-            return plainText;
+            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
+
+            List<byte> EncryptedBytes = new List<byte>();
+            for (int i = 0; i < plainTextBytes.Length; ++i)
+            {
+                byte b = (byte)(plainTextBytes[i] + key);
+                EncryptedBytes.Add(b);
+            }
+
+            return System.Text.Encoding.UTF8.GetString(EncryptedBytes.ToArray());
         }
     }
 }
