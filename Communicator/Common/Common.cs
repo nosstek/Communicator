@@ -128,7 +128,8 @@ namespace Common
             List<byte> EncryptedBytes = new List<byte>();
             for (int i = 0; i < plainTextBytes.Length; ++i)
             {
-                byte b = (byte)(plainTextBytes[i] - key);
+                double temp = plainTextBytes[i];
+                byte b = (byte)((temp - key) % byte.MaxValue);
                 EncryptedBytes.Add(b);
             }
 
@@ -142,7 +143,8 @@ namespace Common
             List<byte> EncryptedBytes = new List<byte>();
             for (int i = 0; i < plainTextBytes.Length; ++i)
             {
-                byte b = (byte)(plainTextBytes[i] + key);
+                double temp = plainTextBytes[i];
+                byte b = (byte)((temp + key) % byte.MaxValue);
                 EncryptedBytes.Add(b);
             }
 

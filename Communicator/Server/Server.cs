@@ -62,11 +62,12 @@ public class Server
 
     static bool InitializeSecureConnection(ref Socket socket)
     {
-        var primes = GeneratePrimesNaive(100);
+        var primes = GeneratePrimesNaive(50);
         Random rnd = new Random();
         int r = rnd.Next(primes.Count);
-        p = 23;//primes[r];
-        g = 5;
+
+        p = primes[r];
+        g = Common.Primes.findPrimitive((int)(p));
 
         var received_request_keys = ReceiveMessage(ref socket);
         Request request = JsonConvert.DeserializeObject<Request>(received_request_keys);
