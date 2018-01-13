@@ -22,22 +22,30 @@ public class Client
             tcp_client.Connect(ip, 8001);
 
             Console.WriteLine("Connected");
-            Console.Write("Enter the string to be transmitted : ");
 
-            String message = Console.ReadLine();
-            Stream network_stream = tcp_client.GetStream();
 
-            ASCIIEncoding encoder = new ASCIIEncoding();
-            byte[] write_buffer = encoder.GetBytes(message);
-            Console.WriteLine("Transmitting.....");
+            bool quit = false;
+            do
+            {
+                Console.Write("Enter the string to be transmitted : ");
 
-            network_stream.Write(write_buffer, 0, write_buffer.Length);
+                String write_message = Console.ReadLine();
+                Stream network_stream = tcp_client.GetStream();
+                
+                ASCIIEncoding encoder = new ASCIIEncoding();
+                byte[] write_buffer = encoder.GetBytes(write_message);
+                Console.WriteLine("Transmitting.....");
 
-            byte[] read_buffer = new byte[100];
-            int data_received = network_stream.Read(read_buffer, 0, 100);
+                network_stream.Write(write_buffer, 0, write_buffer.Length);
 
-            for (int i = 0; i < data_received; i++)
-                Console.Write(Convert.ToChar(read_buffer[i]));
+                byte[] read_buffer = new byte[100];
+                int data_received = network_stream.Read(read_buffer, 0, 100);
+
+                String read_message = encoder.GetString(read_buffer, 0, data_received);
+                Console.WriteLine(read_message);
+
+                quit = write_message == "quit";
+            } while (!quit);
 
             tcp_client.Close();
         }
@@ -46,5 +54,6 @@ public class Client
         {
             Console.WriteLine("Error..... " + e.StackTrace);
         }
+        Console.ReadKey();
     }
 }

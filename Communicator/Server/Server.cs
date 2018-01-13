@@ -28,23 +28,29 @@ public class Server
 
             Socket socket = my_listener.AcceptSocket();
             Console.WriteLine("Connection accepted from " + socket.RemoteEndPoint);
+            bool quit = false;
+            do
+            {
+                byte[] buffer = new byte[100];
+                int data_received = socket.Receive(buffer);
+                Console.WriteLine("Recieved...");
 
-            byte[] buffer = new byte[100];
-            int data_received = socket.Receive(buffer);
-            Console.WriteLine("Recieved...");
-            for (int i = 0; i < data_received; i++)
-                Console.Write(Convert.ToChar(buffer[i]));
+                ASCIIEncoding encoder = new ASCIIEncoding();
+                String message = encoder.GetString(buffer, 0, data_received);
+                Console.WriteLine(message);
 
-            ASCIIEncoding encoder = new ASCIIEncoding();
-            socket.Send(encoder.GetBytes("The string was recieved by the server."));
-            Console.WriteLine("\nSent Acknowledgement");
+                socket.Send(encoder.GetBytes("The string was recieved by the server."));
+                Console.WriteLine("Sent Acknowledgement");
 
+                quit = message == "quit";
+            } while (!quit);
             socket.Close();
-            my_listener.Stop();
+            my_listener.Stop();  
         }
         catch (Exception e)
         {
             Console.WriteLine("Error..... " + e.StackTrace);
         }
+        Console.ReadKey();
     }
 }
