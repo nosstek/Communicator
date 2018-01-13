@@ -7,9 +7,16 @@ public class Server
 {
     public static void Main(string[] args)
     {
+        if (args[0] == null)
+        {
+            Console.WriteLine("Give server IP as a argument!");
+            return;
+        }
+
+        string ip = args[0];
         try
         {
-            IPAddress ip_address = IPAddress.Parse("192.168.0.229");
+            IPAddress ip_address = IPAddress.Parse(ip);
 
             TcpListener my_listener = new TcpListener(ip_address, 8001);
 

@@ -3,17 +3,23 @@ using System.IO;
 using System.Text;
 using System.Net.Sockets;
 
-
 public class Client
 {
     public static void Main(string[] args)
     {
+        if (args[0] == null)
+        {
+            Console.WriteLine("Give server IP as a argument!");
+            return;
+        }
+
+        string ip = args[0];
         try
         {
             TcpClient tcp_client = new TcpClient();
             Console.WriteLine("Connecting.....");
 
-            tcp_client.Connect("192.168.0.229", 8001);
+            tcp_client.Connect(ip, 8001);
 
             Console.WriteLine("Connected");
             Console.Write("Enter the string to be transmitted : ");
