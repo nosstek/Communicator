@@ -2,6 +2,7 @@
 using System.Text;
 using System.Net;
 using System.Net.Sockets;
+using Newtonsoft.Json;
 
 public class Server
 {
@@ -36,13 +37,16 @@ public class Server
                 Console.WriteLine("Recieved...");
 
                 ASCIIEncoding encoder = new ASCIIEncoding();
-                String message = encoder.GetString(buffer, 0, data_received);
-                Console.WriteLine(message);
+                String json_message = encoder.GetString(buffer, 0, data_received);
+                dynamic message = JsonConvert.DeserializeObject(json_message);
+                string name = message.Name;
+                string text = message.Text;
+                Console.WriteLine(name + ": " + text);
 
                 socket.Send(encoder.GetBytes("The string was recieved by the server."));
                 Console.WriteLine("Sent Acknowledgement");
 
-                quit = message == "quit";
+                quit = text == "quit";
             } while (!quit);
             socket.Close();
             my_listener.Stop();  

@@ -2,6 +2,18 @@
 using System.IO;
 using System.Text;
 using System.Net.Sockets;
+using Newtonsoft.Json;
+
+public class Message
+{
+    public Message(String name, String text)
+    {
+        Name = name;
+        Text = text;
+    }
+    public String Name;
+    public String Text;
+}
 
 public class Client
 {
@@ -28,8 +40,11 @@ public class Client
             do
             {
                 Console.Write("Enter the string to be transmitted : ");
-
-                String write_message = Console.ReadLine();
+               
+                String name = "test";
+                String text = Console.ReadLine();
+                Message message = new Message(name, text);
+                String write_message = JsonConvert.SerializeObject(message);
                 Stream network_stream = tcp_client.GetStream();
                 
                 ASCIIEncoding encoder = new ASCIIEncoding();
@@ -44,7 +59,7 @@ public class Client
                 String read_message = encoder.GetString(read_buffer, 0, data_received);
                 Console.WriteLine(read_message);
 
-                quit = write_message == "quit";
+                quit = text == "quit";
             } while (!quit);
 
             tcp_client.Close();
