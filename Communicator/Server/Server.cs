@@ -3,6 +3,7 @@ using System.Text;
 using System.Net;
 using System.Net.Sockets;
 using Newtonsoft.Json;
+using Common;
 
 public class Server
 {
@@ -38,7 +39,7 @@ public class Server
 
                 ASCIIEncoding encoder = new ASCIIEncoding();
                 String json_message = encoder.GetString(buffer, 0, data_received);
-                dynamic message = JsonConvert.DeserializeObject(json_message);
+                Message message = JsonConvert.DeserializeObject<Message>(json_message);
                 string name = message.Name;
                 string text = message.Text;
                 Console.WriteLine(name + ": " + text);
