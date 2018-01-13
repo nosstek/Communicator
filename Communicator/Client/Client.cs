@@ -29,7 +29,7 @@ public class Client
         byte[] read_buffer = new byte[100];
         int data_received = network_stream.Read(read_buffer, 0, 100);
 
-        return encoder.GetString(read_buffer, 0, data_received); ;
+        return encoder.GetString(read_buffer, 0, data_received);
     }
 
     static bool InitializeSecureConnection(ref TcpClient tcp_client)
@@ -76,19 +76,26 @@ public class Client
 
             InitializeSecureConnection(ref tcp_client);
 
+            ICrypt crypt = new XORCrypt();
+            ICoder coder = new Base64Coder();
+
             bool quit = false;
             do
             {
                 Console.Write("Enter the string to be transmitted : ");
 
                 String from = Client.name;
+
                 String msg = Console.ReadLine();
-                Message message = new Message(from, msg);
+                String encrypted_msg = crypt.Encrypt(msg);
+                String encoded_msg = coder.Encode(encrypted_msg);
+
+                Message message = new Message(from, encoded_msg);
+
                 String write_message = JsonConvert.SerializeObject(message);
                 Stream network_stream = tcp_client.GetStream();
 
-                ASCIIEncoding encoder = new ASCIIEncoding();
-                byte[] write_buffer = encoder.GetBytes(write_message);
+                byte[] write_buffer = Encoding.UTF8.GetBytes(write_message);
                 Console.WriteLine("Transmitting.....");
 
                 network_stream.Write(write_buffer, 0, write_buffer.Length);
@@ -96,7 +103,7 @@ public class Client
                 byte[] read_buffer = new byte[100];
                 int data_received = network_stream.Read(read_buffer, 0, 100);
 
-                String read_message = encoder.GetString(read_buffer, 0, data_received);
+                String read_message = Encoding.UTF8.GetString(read_buffer, 0, data_received);
                 Console.WriteLine(read_message);
                 //Console.WriteLine(SendMessage(tcp_client, JsonConvert.SerializeObject(message)));
 

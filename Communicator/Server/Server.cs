@@ -82,6 +82,9 @@ public class Server
 
             InitializeSecureConnection(ref socket);
 
+            ICrypt crypt = new XORCrypt();
+            ICoder coder = new Base64Coder();
+
             bool quit = false;
             do
             {
@@ -89,16 +92,17 @@ public class Server
                 int data_received = socket.Receive(buffer);
                 Console.Write("Recieved... ");
 
-                ASCIIEncoding encoder = new ASCIIEncoding();
-                String json_message = encoder.GetString(buffer, 0, data_received);
-                Console.Write(json_message);
+                String json_message = Encoding.UTF8.GetString(buffer, 0, data_received);
+                Console.WriteLine(json_message);
 
                 Message message = JsonConvert.DeserializeObject<Message>(json_message);
                 string name = message.Name;
-                string text = message.Text;
+                string text_encoded = message.Text;
+                String text_encrypted = coder.Decode(text_encoded);
+                String text = crypt.Decrypt(text_encrypted);
                 Console.WriteLine(name + ": " + text);
 
-                socket.Send(encoder.GetBytes("The string was recieved by the server."));
+                socket.Send(Encoding.UTF8.GetBytes("The string was recieved by the server."));
                 Console.WriteLine("Sent Acknowledgement");
 
                 quit = text == "quit";

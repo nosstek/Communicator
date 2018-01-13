@@ -31,13 +31,13 @@ namespace Common
         public String encryption;
     }
 
-    public interface IEncoder
+    public interface ICoder
     {
         string Encode(string plainText);
         string Decode(string encodedData);
     }
 
-    public class Base64Encoder : IEncoder
+    public class Base64Coder : ICoder
     {
         public static string Base64Encode(string plainText)
         {
@@ -62,17 +62,35 @@ namespace Common
         }
     }
 
-    public class AsciiEncoder : IEncoder
+    public interface ICrypt
     {
-        public string Decode(string encodedData)
+        string Encrypt(string plainText);
+        string Decrypt(string encodeData);
+    }
+
+    public class XORCrypt : ICrypt
+    {
+        public string Decrypt(string encodeData)
         {
-            ASCIIEncoding encoder = new ASCIIEncoding();
+            return encodeData;
         }
 
-        public string Encode(string plainText)
+        public string Encrypt(string plainText)
         {
-            throw new NotImplementedException();
+            return plainText;
         }
     }
 
+    public class CesarCrypt : ICrypt
+    {
+        public string Decrypt(string encodeData)
+        {
+            return encodeData;
+        }
+
+        public string Encrypt(string plainText)
+        {
+            return plainText;
+        }
+    }
 }
